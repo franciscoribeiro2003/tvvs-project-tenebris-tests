@@ -1,0 +1,7 @@
+.idea/
+docs/
+lib/
+src/main/
+*.jar
+.DS_Store
+*.log
