@@ -14,3 +14,10 @@ Tenebris,src/test/java/pt/feup/tvvs/tenebris/ArenaLogicMutationTests.java,src/ma
 Tenebris,src/test/java/pt/feup/tvvs/tenebris/TenebrisTests.java,src/main/java/pt/feup/tvvs/tenebris/Tenebris.java
 Tenebris,src/test/java/pt/feup/tvvs/tenebris/SaveDataTests.java,src/main/java/pt/feup/tvvs/tenebris/savedata/SaveData.java
 Tenebris,src/test/java/pt/feup/tvvs/tenebris/StateTests.java,src/main/java/pt/feup/tvvs/tenebris/state/State.java
+Tenebris,src/test/java/pt/feup/tvvs/tenebris/MonsterControllerWhiteBoxTests.java,src/main/java/pt/feup/tvvs/tenebris/controller/arena/monster/MonsterController.java
+Tenebris,src/test/java/pt/feup/tvvs/tenebris/WeaponControllerWhiteBoxTests.java,src/main/java/pt/feup/tvvs/tenebris/controller/arena/weapon/WeaponController.java
+Tenebris,src/test/java/pt/feup/tvvs/tenebris/CommandWhiteBoxTests.java,src/main/java/pt/feup/tvvs/tenebris/model/arena/_commands/Command.java
+Tenebris,src/test/java/pt/feup/tvvs/tenebris/AnimationMutationTests.java,src/main/java/pt/feup/tvvs/tenebris/model/arena/animation/Animation.java
+Tenebris,src/test/java/pt/feup/tvvs/tenebris/EffectMutationTests.java,src/main/java/pt/feup/tvvs/tenebris/model/arena/effects/Effect.java
+Tenebris,src/test/java/pt/feup/tvvs/tenebris/ProjectileMutationTests.java,src/main/java/pt/feup/tvvs/tenebris/model/arena/projectiles/Projectile.java
+Tenebris,src/test/java/pt/feup/tvvs/tenebris/GuiWhiteBoxTests.java,src/main/java/pt/feup/tvvs/tenebris/gui/LanternaGUI.java
