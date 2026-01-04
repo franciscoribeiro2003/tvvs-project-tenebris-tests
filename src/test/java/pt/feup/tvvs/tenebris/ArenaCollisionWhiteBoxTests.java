@@ -19,19 +19,17 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
-class ArenaCollisionWhiteBoxTests {
+public class ArenaCollisionWhiteBoxTests {
 
     @Test
-    void testBulletKillsMonster() throws IOException {
+    public void testBulletKillsMonster() throws IOException {
         // Arrange
         Arena arena = new Arena();
-        // SPY on the controller so we can verify if it receives commands
         ArenaController controller = spy(new ArenaController(arena));
 
-        // Place Monster and Bullet at same location
         Vector2D pos = new Vector2D(50, 50);
-        TenebrisPeon monster = new TenebrisPeon(pos, 10, 1, 10, 100); // 10 HP
-        Bullet bullet = new Bullet(pos, Vector2D.Direction.RIGHT); // 10 Damage
+        TenebrisPeon monster = new TenebrisPeon(pos, 10, 1, 10, 100);
+        Bullet bullet = new Bullet(pos, Vector2D.Direction.RIGHT);
 
         arena.addElement(monster);
         arena.getProjectiles().add(bullet);
@@ -40,24 +38,21 @@ class ArenaCollisionWhiteBoxTests {
         controller.checkCollisions();
 
         // Assert
-        // Instead of checking if the list is empty (which requires triggerCommands() to run),
-        // we check if the controller received the order to delete them.
         verify(controller).handleCommand(any(DeleteMonster.class));
     }
 
     @Test
-    void testDylanTakesDamageFromMonster() throws IOException {
+    public void testDylanTakesDamageFromMonster() throws IOException {
         Arena arena = new Arena();
         ArenaController controller = new ArenaController(arena);
 
         Vector2D pos = new Vector2D(50, 50);
         Dylan dylan = new Dylan(pos, 100, 5);
-        TenebrisPeon monster = new TenebrisPeon(pos, 100, 1, 20, 100); // 20 Damage
+        TenebrisPeon monster = new TenebrisPeon(pos, 100, 1, 20, 100);
 
         arena.setDylan(dylan);
         arena.addElement(monster);
 
-        // Pre-check
         assertEquals(100, dylan.getHp());
 
         // Act
@@ -68,7 +63,7 @@ class ArenaCollisionWhiteBoxTests {
     }
 
     @Test
-    void testProjectileHitsWall() throws IOException {
+    public void testProjectileHitsWall() throws IOException {
         Arena arena = new Arena();
         ArenaController controller = spy(new ArenaController(arena));
 
@@ -83,7 +78,6 @@ class ArenaCollisionWhiteBoxTests {
         controller.checkCollisions();
 
         // Assert
-        // Verify that the DeleteProjectile command was generated
         verify(controller).handleCommand(any(DeleteProjectile.class));
     }
 }

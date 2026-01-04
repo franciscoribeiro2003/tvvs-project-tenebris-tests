@@ -1,17 +1,16 @@
 package pt.feup.tvvs.tenebris;
 
 import net.jqwik.api.*;
-import net.jqwik.api.constraints.IntRange; // Import this
+import net.jqwik.api.constraints.IntRange;
 import pt.feup.tvvs.tenebris.utils.Vector2D;
 
-class PBTests {
+public class PBTests {
 
-    // Constrain inputs to avoid Long overflow which isn't relevant for game logic
     @Property
-    void vectorAdditionIsCommutative(@ForAll @IntRange(min = -10000, max = 10000) int x1,
-                                     @ForAll @IntRange(min = -10000, max = 10000) int y1,
-                                     @ForAll @IntRange(min = -10000, max = 10000) int x2,
-                                     @ForAll @IntRange(min = -10000, max = 10000) int y2) {
+    public void vectorAdditionIsCommutative(@ForAll @IntRange(min = -10000, max = 10000) int x1,
+                                            @ForAll @IntRange(min = -10000, max = 10000) int y1,
+                                            @ForAll @IntRange(min = -10000, max = 10000) int x2,
+                                            @ForAll @IntRange(min = -10000, max = 10000) int y2) {
         Vector2D v1 = new Vector2D(x1, y1);
         Vector2D v2 = new Vector2D(x2, y2);
 
@@ -22,10 +21,10 @@ class PBTests {
     }
 
     @Property
-    void vectorSubtractionReversesAddition(@ForAll @IntRange(min = -10000, max = 10000) int x1,
-                                           @ForAll @IntRange(min = -10000, max = 10000) int y1,
-                                           @ForAll @IntRange(min = -10000, max = 10000) int x2,
-                                           @ForAll @IntRange(min = -10000, max = 10000) int y2) {
+    public void vectorSubtractionReversesAddition(@ForAll @IntRange(min = -10000, max = 10000) int x1,
+                                                  @ForAll @IntRange(min = -10000, max = 10000) int y1,
+                                                  @ForAll @IntRange(min = -10000, max = 10000) int x2,
+                                                  @ForAll @IntRange(min = -10000, max = 10000) int y2) {
         Vector2D v1 = new Vector2D(x1, y1);
         Vector2D v2 = new Vector2D(x2, y2);
 
@@ -35,8 +34,8 @@ class PBTests {
     }
 
     @Property
-    void magnitudeIsAlwaysPositive(@ForAll @IntRange(min = -10000, max = 10000) int x,
-                                   @ForAll @IntRange(min = -10000, max = 10000) int y) {
+    public void magnitudeIsAlwaysPositive(@ForAll @IntRange(min = -10000, max = 10000) int x,
+                                          @ForAll @IntRange(min = -10000, max = 10000) int y) {
         Vector2D v = new Vector2D(x, y);
         assert v.magnitude() >= 0;
     }

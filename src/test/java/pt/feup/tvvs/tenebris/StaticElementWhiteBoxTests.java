@@ -7,16 +7,16 @@ import pt.feup.tvvs.tenebris.utils.Vector2D;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class StaticElementWhiteBoxTests {
+public class StaticElementWhiteBoxTests {
 
     @Test
-    void testSpikeDamage() {
+    public void testSpikeDamage() {
         Spike spike = new Spike(new Vector2D(0,0), 50);
         assertEquals(50, spike.getEntityDamage());
     }
 
     @Test
-    void testBreakableWallDegradation() {
+    public void testBreakableWallDegradation() {
         BreakableWall wall = new BreakableWall(new Vector2D(0,0), 30);
 
         assertTrue(wall.isAlive());

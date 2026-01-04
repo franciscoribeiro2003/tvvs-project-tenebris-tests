@@ -5,7 +5,6 @@ import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import pt.feup.tvvs.tenebris.gui.GUI;
 import pt.feup.tvvs.tenebris.model.arena.Arena;
-import pt.feup.tvvs.tenebris.model.arena.Camera;
 import pt.feup.tvvs.tenebris.model.arena.effects.Explosion;
 import pt.feup.tvvs.tenebris.model.arena.entities.Dylan;
 import pt.feup.tvvs.tenebris.model.arena.entities.monster.*;
@@ -15,7 +14,6 @@ import pt.feup.tvvs.tenebris.model.arena.static_elements.*;
 import pt.feup.tvvs.tenebris.model.arena.weapons.*;
 import pt.feup.tvvs.tenebris.model.menu.*;
 import pt.feup.tvvs.tenebris.savedata.SaveDataProvider;
-import pt.feup.tvvs.tenebris.utils.Difficulty;
 import pt.feup.tvvs.tenebris.utils.Vector2D;
 import pt.feup.tvvs.tenebris.view.arena.ArenaView;
 import pt.feup.tvvs.tenebris.view.arena.effects.ExplosionView;
@@ -28,13 +26,11 @@ import pt.feup.tvvs.tenebris.view.arena.weapon.*;
 import pt.feup.tvvs.tenebris.view.menu.*;
 
 import java.io.IOException;
-import java.util.ArrayList;
 
-class ViewWhiteBoxTests {
+public class ViewWhiteBoxTests {
 
     @Test
-    void testAllViewsDraw() throws IOException {
-        // We mock the GUI static instance so we don't need a real screen
+    public void testAllViewsDraw() throws IOException {
         GUI mockGUI = Mockito.mock(GUI.class);
         Vector2D dummyPos = new Vector2D(0,0);
 
@@ -51,8 +47,6 @@ class ViewWhiteBoxTests {
             new LevelCompletedMenuView(new LevelCompletedMenu()).draw();
             new PauseMenuView(new PauseMenu(Mockito.mock(Arena.class))).draw();
             new VictoryMenuView(new VictoryMenu()).draw();
-            // Load Game Menu
-            // new LoadGameMenuView(new LoadGameMenu()).draw(); // Might require complex static mocking for SaveManager
 
             // --- Entity Views ---
             new DylanView(new Dylan(dummyPos, 100, 1)).draw(dummyPos);
@@ -91,9 +85,7 @@ class ViewWhiteBoxTests {
 
             // --- Arena View ---
             Arena arena = new Arena();
-            // Inject dummy elements to trigger loops inside ArenaView
             arena.setDylan(new Dylan(dummyPos, 100, 1));
-            // ArenaView uses camera position
             new ArenaView(arena).draw();
         }
     }
