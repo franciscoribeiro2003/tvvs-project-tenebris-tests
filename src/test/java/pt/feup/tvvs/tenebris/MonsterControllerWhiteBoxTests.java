@@ -15,6 +15,7 @@ import pt.feup.tvvs.tenebris.utils.Vector2D;
 import java.io.IOException;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 
 public class MonsterControllerWhiteBoxTests {
 
@@ -203,5 +204,89 @@ public class MonsterControllerWhiteBoxTests {
         controller.update(dylanPos, arena, handler);
 
         assertEquals(Entity.State.FRONT, peon.getMoving());
+    }
+
+
+    @Test
+    public void testVisionBlockedByWall() throws IOException {
+        Vector2D monsterPos = new Vector2D(0, 0);
+        Vector2D dylanPos = new Vector2D(100, 0);
+        Vector2D blockPos = new Vector2D(50, 0); // Directly between
+
+        TenebrisPeon peon = new TenebrisPeon(monsterPos, 50, 2, 10, 200);
+        TenebrisPeonController controller = (TenebrisPeonController) peon.getController();
+
+        Arena arena = new Arena();
+        // VisionBlocker blocks vision
+        arena.addElement(new VisionBlocker(blockPos));
+
+        controller.update(dylanPos, arena, Mockito.mock(CommandHandler.class));
+
+        // Should NOT move because can't see
+        assertEquals(Entity.State.IDLE, peon.getMoving());
+    }
+
+    @Test
+    public void testVisionNotBlockedByOffCenterWall() throws IOException {
+        Vector2D monsterPos = new Vector2D(0, 0);
+        Vector2D dylanPos = new Vector2D(100, 0);
+        Vector2D blockPos = new Vector2D(50, 50); // Far away
+
+        TenebrisPeon peon = new TenebrisPeon(monsterPos, 50, 2, 10, 200);
+        TenebrisPeonController controller = (TenebrisPeonController) peon.getController();
+
+        Arena arena = new Arena();
+        arena.addElement(new VisionBlocker(blockPos));
+
+        controller.update(dylanPos, arena, Mockito.mock(CommandHandler.class));
+
+        // Should move
+        assertEquals(Entity.State.RIGHT, peon.getMoving());
+    }
+
+    @Test
+    public void testWardenMovementDirections() throws IOException {
+        // Test all 4 cardinal directions for pathfinding
+        TenebrisWarden warden = new TenebrisWarden(new Vector2D(100,100), 100, 2, 10, 200);
+        TenebrisWardenController ctrl = (TenebrisWardenController) warden.getController();
+        Arena arena = new Arena();
+        CommandHandler h = Mockito.mock(CommandHandler.class);
+
+        // UP
+        ctrl.update(new Vector2D(100, 50), arena, h);
+        assertEquals(Entity.State.BACK, warden.getMoving());
+
+        // DOWN
+        ctrl.update(new Vector2D(100, 150), arena, h);
+        assertEquals(Entity.State.FRONT, warden.getMoving());
+
+        // LEFT
+        ctrl.update(new Vector2D(50, 100), arena, h);
+        assertEquals(Entity.State.LEFT, warden.getMoving());
+
+        // RIGHT
+        ctrl.update(new Vector2D(150, 100), arena, h);
+        assertEquals(Entity.State.RIGHT, warden.getMoving());
+    }
+
+    @Test
+    public void testHarbingerShooting() throws IOException {
+        // Harbinger shoots if close enough
+        TenebrisHarbinger harb = new TenebrisHarbinger(new Vector2D(0,0), 10, 1, 10, 200, 100);
+        TenebrisHarbingerController ctrl = (TenebrisHarbingerController) harb.getController();
+
+        Arena arena = new Arena();
+        CommandHandler handler = Mockito.mock(CommandHandler.class);
+
+        // Dylan is within shooting range (50 < 100)
+        // We need to call update 30 times (shootingCooldown = 30)
+        for(int i=0; i<35; i++) {
+            ctrl.update(new Vector2D(50, 0), arena, handler);
+        }
+
+        // Should have fired a projectile command
+        // We can't easily verify the command type without capturing it,
+        // but we can verify interaction with handler
+        Mockito.verify(handler, Mockito.atLeastOnce()).handleCommand(any());
     }
 }
