@@ -19,41 +19,43 @@ public class AnimationMutationTests {
         Bounce bounce = new Bounce(dylan, Vector2D.Direction.RIGHT);
         assertFalse(bounce.isOver());
 
+        // Frame 0: velocity = 7 * 0.8^0 = 7.
         bounce.execute();
-        assertTrue(dylan.getPosition().x() > initialPos.x(), "Entity should move right");
+        // Exact Check: 100 + 7 = 107
+        assertEquals(107, dylan.getPosition().x(), "Entity should move right by exactly 7");
     }
 
     @Test
     public void testBounceLeftDirection() {
         Dylan dylan = new Dylan(new Vector2D(100, 100), 100, 3);
-        Vector2D initialPos = dylan.getPosition();
 
         Bounce bounce = new Bounce(dylan, Vector2D.Direction.LEFT);
         bounce.execute();
 
-        assertTrue(dylan.getPosition().x() < initialPos.x(), "Entity should move left");
+        // Exact Check: 100 - 7 = 93
+        assertEquals(93, dylan.getPosition().x(), "Entity should move left by exactly 7");
     }
 
     @Test
     public void testBounceUpDirection() {
         Dylan dylan = new Dylan(new Vector2D(100, 100), 100, 3);
-        Vector2D initialPos = dylan.getPosition();
 
         Bounce bounce = new Bounce(dylan, Vector2D.Direction.UP);
         bounce.execute();
 
-        assertTrue(dylan.getPosition().y() < initialPos.y(), "Entity should move up");
+        // Exact Check: 100 - 7 = 93
+        assertEquals(93, dylan.getPosition().y(), "Entity should move up by exactly 7");
     }
 
     @Test
     public void testBounceDownDirection() {
         Dylan dylan = new Dylan(new Vector2D(100, 100), 100, 3);
-        Vector2D initialPos = dylan.getPosition();
 
         Bounce bounce = new Bounce(dylan, Vector2D.Direction.DOWN);
         bounce.execute();
 
-        assertTrue(dylan.getPosition().y() > initialPos.y(), "Entity should move down");
+        // Exact Check: 100 + 7 = 107
+        assertEquals(107, dylan.getPosition().y(), "Entity should move down by exactly 7");
     }
 
     @Test
@@ -77,13 +79,17 @@ public class AnimationMutationTests {
 
         int firstX = dylan.getPosition().x();
         bounce.execute();
+        // Move 1: 7 * 0.8^0 = 7
         int firstMove = dylan.getPosition().x() - firstX;
+        assertEquals(7, firstMove);
 
         int secondX = dylan.getPosition().x();
         bounce.execute();
+        // Move 2: 7 * 0.8^1 = 5.6 -> (int)5
         int secondMove = dylan.getPosition().x() - secondX;
+        assertEquals(5, secondMove);
 
-        assertTrue(firstMove >= secondMove, "Bounce should decay");
+        assertTrue(firstMove > secondMove, "Bounce should decay");
     }
 
     @Test
@@ -94,7 +100,7 @@ public class AnimationMutationTests {
         CameraShake shake = new CameraShake(camera);
 
         // Execute all frames
-        while (! shake.isOver()) {
+        while (!shake.isOver()) {
             shake.execute();
         }
 
@@ -111,18 +117,17 @@ public class AnimationMutationTests {
         shake.execute();
 
         // Position should change during shake (statistically very likely)
-        // Run multiple times to verify shake effect
         boolean positionChanged = false;
-        for (int i = 0; i < 5 && !shake.isOver(); i++) {
-            shake.execute();
-            if (! camera.getPosition().equals(originalPos)) {
+        // Check for 10 frames (duration of shake)
+        for (int i = 0; i < 10; i++) {
+            if (!camera.getPosition().equals(originalPos)) {
                 positionChanged = true;
             }
+            if(!shake.isOver()) shake.execute();
         }
 
-        // Complete the animation
-        while (!shake.isOver()) {
-            shake.execute();
-        }
+        // We can't guarantee random numbers, but probability suggests it should move
+        // However, correctness is that it eventually stops.
+        assertTrue(shake.isOver());
     }
 }

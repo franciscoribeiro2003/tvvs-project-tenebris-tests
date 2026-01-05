@@ -7,14 +7,15 @@ import pt.feup.tvvs.tenebris.controller.menu.*;
 import pt.feup.tvvs.tenebris.gui.Action;
 import pt.feup.tvvs.tenebris.gui.GUI;
 import pt.feup.tvvs.tenebris.model.menu.*;
-import pt.feup.tvvs.tenebris.savedata.SaveData;
 import pt.feup.tvvs.tenebris.savedata.SaveDataProvider;
 import pt.feup.tvvs.tenebris.sound.SoundManager;
+import pt.feup.tvvs.tenebris.state.MenuState;
 import pt.feup.tvvs.tenebris.state.StateChanger;
 
 import java.io.IOException;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -33,22 +34,28 @@ public class MenuControllerTests {
             guiStatic.when(GUI::getGUI).thenReturn(mockGUI);
             soundStatic.when(SoundManager::getInstance).thenReturn(mockSound);
 
-            // Test Main Menu Navigation
+            // Test Main Menu Navigation - New Game
             MainMenu menu = new MainMenu(provider);
             MainMenuController mainController = new MainMenuController(menu);
 
-            when(mockGUI.getAction()).thenReturn(Action.LOOK_DOWN);
+            // Select index 0 (New Game)
+            menu.setSelectedOption(0);
+            when(mockGUI.getAction()).thenReturn(Action.EXEC);
             mainController.tick(changer, provider);
 
-            when(mockGUI.getAction()).thenReturn(Action.LOOK_UP);
-            mainController.tick(changer, provider);
+            verify(changer).setState(argThat(state ->
+                    state instanceof MenuState && ((MenuState)state).getModel() instanceof NewGameMenu
+            ));
 
-            // Test HowToPlay
+            // Test HowToPlay - Exit logic
             HowToPlayMenu htp = new HowToPlayMenu();
             HowToPlayMenuController htpController = new HowToPlayMenuController(htp);
             when(mockGUI.getAction()).thenReturn(Action.ESC);
             htpController.tick(changer, provider);
-            // Should go back to Main Menu (checked by state change, not mocked here deeply but code runs)
+
+            verify(changer).setState(argThat(state ->
+                    state instanceof MenuState && ((MenuState)state).getModel() instanceof MainMenu
+            ));
 
             // Test GameOver
             GameOverMenu gom = new GameOverMenu();

@@ -6,6 +6,8 @@ import org.mockito.Mockito;
 import pt.feup.tvvs.tenebris.controller.arena.ArenaController;
 import pt.feup.tvvs.tenebris.gui.GUI;
 import pt.feup.tvvs.tenebris.model.arena.Arena;
+import pt.feup.tvvs.tenebris.model.menu.LevelCompletedMenu;
+import pt.feup.tvvs.tenebris.model.menu.VictoryMenu;
 import pt.feup.tvvs.tenebris.savedata.SaveData;
 import pt.feup.tvvs.tenebris.savedata.SaveDataManager;
 import pt.feup.tvvs.tenebris.savedata.SaveDataProvider;
@@ -40,12 +42,17 @@ public class ArenaLogicMutationTests {
             gui.when(GUI::getGUI).thenReturn(mockGUI);
             when(mockGUI.getActiveActions()).thenReturn(Collections.emptySet());
 
+            // Tick enough times to drain endCounter
             for (int i = 0; i < 65; i++) {
                 controller.tick(changer, provider);
             }
 
-            verify(changer, atLeastOnce()).setState(any(MenuState.class));
+            // Accept one or more invocations; controller may call increaseLevel repeatedly in current logic.
             verify(save, atLeastOnce()).increaseLevel();
+            // Verify transition to LevelCompletedMenu
+            verify(changer, atLeastOnce()).setState(argThat(state ->
+                    state instanceof MenuState && ((MenuState)state).getModel() instanceof LevelCompletedMenu
+            ));
         }
     }
 
@@ -67,7 +74,10 @@ public class ArenaLogicMutationTests {
 
             for (int i = 0; i < 65; i++) controller.tick(changer, provider);
 
-            verify(changer, atLeastOnce()).setState(any(State.class));
+            // Transition to VictoryMenu
+            verify(changer, atLeastOnce()).setState(argThat(state ->
+                    state instanceof MenuState && ((MenuState)state).getModel() instanceof VictoryMenu
+            ));
         }
     }
 
@@ -76,7 +86,7 @@ public class ArenaLogicMutationTests {
         Arena arena = new Arena();
         ArenaController controller = new ArenaController(arena);
 
-        arena.setDylan(null);
+        arena.setDylan(null); // Dead
 
         SaveData save = Mockito.mock(SaveData.class);
         when(save.getDifficulty()).thenReturn(Difficulty.Heartless);

@@ -43,7 +43,6 @@ public class ArenaControllerWhiteBoxTests {
         arena = new Arena();
         controller = new ArenaController(arena);
 
-        // Fix for NPE: Always provide a valid SaveData Mock
         mockSaveProvider = Mockito.mock(SaveDataProvider.class);
         mockSaveData = Mockito.mock(SaveData.class);
         when(mockSaveProvider.getSaveData()).thenReturn(mockSaveData);
@@ -91,13 +90,18 @@ public class ArenaControllerWhiteBoxTests {
         arena.setDylan(dylan);
         arena.addElement(monster);
 
+        // Spy to check commands
+        ArenaController spyController = spy(controller);
+
         try (MockedStatic<SoundManager> sound = Mockito.mockStatic(SoundManager.class)) {
             sound.when(SoundManager::getInstance).thenReturn(Mockito.mock(SoundManager.class));
 
-            controller.checkCollisions();
+            spyController.checkCollisions();
 
             assertEquals(90, dylan.getHp(), "Dylan should take 10 damage");
             assertNotNull(dylan.getAnimation(), "Dylan should bounce back (animation set)");
+            // Ensure blood particles created
+            verify(spyController, atLeastOnce()).handleCommand(any(CreateParticle.class));
         }
     }
 
@@ -113,7 +117,10 @@ public class ArenaControllerWhiteBoxTests {
         ArenaController spyController = spy(controller);
         spyController.checkCollisions();
 
-        verify(spyController).handleCommand(any(DeleteProjectile.class));
+        // Specific Verification
+        verify(spyController).handleCommand(argThat(cmd ->
+                cmd instanceof DeleteProjectile && ((DeleteProjectile)cmd).projectile() == bullet
+        ));
     }
 
     @Test
@@ -185,10 +192,18 @@ public class ArenaControllerWhiteBoxTests {
             controller.tick(Mockito.mock(StateChanger.class), mockSaveProvider);
         }
 
-        assertTrue(arena.getProjectiles().isEmpty() == false);
-        assertTrue(arena.getEffects().isEmpty() == false);
-        assertFalse(arena.getMonsters().contains(monster));
-        assertFalse(arena.getElements().contains(wall));
-        assertNull(arena.getDylan());
+        // Verify specific original elements removed
+        assertFalse(arena.getProjectiles().contains(bullet), "Original projectile should be removed");
+        assertFalse(arena.getEffects().contains(explosion), "Original effect should be removed");
+        assertFalse(arena.getMonsters().contains(monster), "Original monster should be removed");
+        assertFalse(arena.getElements().contains(wall), "Original breakable wall should be removed");
+        assertNull(arena.getDylan(), "Dylan should be killed by KillDylan command");
+
+        // Verify expected newly created items exist (don't rely on exact global counts)
+        assertTrue(arena.getProjectiles().stream().anyMatch(p -> p.getPosition().equals(new Vector2D(10,10))),
+                "Expected a projectile at (10,10) to have been created");
+        assertTrue(arena.getEffects().stream().anyMatch(e -> e.getPosition().equals(new Vector2D(20,20))),
+                "Expected an effect at (20,20) to have been created");
+        assertTrue(arena.getParticles().size() >= 1, "At least one particle should have been created");
     }
 }

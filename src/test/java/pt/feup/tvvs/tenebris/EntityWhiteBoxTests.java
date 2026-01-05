@@ -36,7 +36,10 @@ public class EntityWhiteBoxTests {
             assertFalse(peon.isAlive());
 
             List<Command> commands = peon.interact(new Wall(new Vector2D(0,0)));
-            assertTrue(commands.stream().anyMatch(c -> c instanceof DeleteMonster));
+            // Check specifically that the command deletes *this* peon
+            assertTrue(commands.stream().anyMatch(c ->
+                    c instanceof DeleteMonster && ((DeleteMonster)c).monster() == peon
+            ));
         }
     }
 

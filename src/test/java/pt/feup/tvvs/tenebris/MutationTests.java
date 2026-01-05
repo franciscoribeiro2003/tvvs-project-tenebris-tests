@@ -1,18 +1,18 @@
-package pt. feup.tvvs.tenebris;
+package pt.feup.tvvs.tenebris;
 
-import org. junit.jupiter.api.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
-import pt.feup.tvvs.tenebris. model.arena. entities.Dylan;
-import pt. feup.tvvs.tenebris.model.arena. entities.Entity;
-import pt. feup.tvvs.tenebris.model.arena. weapons.GrenadeLauncher;
-import pt.feup. tvvs.tenebris.model. arena.weapons. Pistol;
-import pt.feup. tvvs.tenebris.sound.SoundManager;
-import pt.feup.tvvs.tenebris. utils.HitBox;
-import pt. feup.tvvs.tenebris.utils.Vector2D;
+import pt.feup.tvvs.tenebris.model.arena.entities.Dylan;
+import pt.feup.tvvs.tenebris.model.arena.entities.Entity;
+import pt.feup.tvvs.tenebris.model.arena.weapons.GrenadeLauncher;
+import pt.feup.tvvs.tenebris.model.arena.weapons.Pistol;
+import pt.feup.tvvs.tenebris.sound.SoundManager;
+import pt.feup.tvvs.tenebris.utils.HitBox;
+import pt.feup.tvvs.tenebris.utils.Vector2D;
 
 import java.util.Set;
-import java.util. TreeSet;
+import java.util.TreeSet;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -68,7 +68,7 @@ public class MutationTests {
     @Test
     public void testPistolAmmoCount() {
         try (MockedStatic<SoundManager> sound = Mockito.mockStatic(SoundManager.class)) {
-            SoundManager mockSound = Mockito.mock(SoundManager. class);
+            SoundManager mockSound = Mockito.mock(SoundManager.class);
             sound.when(SoundManager::getInstance).thenReturn(mockSound);
 
             Pistol pistol = new Pistol();
@@ -89,17 +89,15 @@ public class MutationTests {
     public void testPistolReloadRestoresAmmo() {
         try (MockedStatic<SoundManager> sound = Mockito.mockStatic(SoundManager.class)) {
             SoundManager mockSound = Mockito.mock(SoundManager.class);
-            sound.when(SoundManager:: getInstance).thenReturn(mockSound);
+            sound.when(SoundManager::getInstance).thenReturn(mockSound);
 
             Pistol pistol = new Pistol();
 
-            // Shoot all ammo
             for (int i = 0; i < 15; i++) {
                 for (int j = 0; j < 10; j++) pistol.tickWeaponTimer();
                 if (pistol.canShoot()) pistol.shot();
             }
 
-            // Reload
             pistol.startReload();
             for (int i = 0; i < 50; i++) pistol.tickWeaponTimer();
             pistol.reload();
@@ -111,7 +109,7 @@ public class MutationTests {
     @Test
     public void testGrenadeLauncherAmmo() {
         try (MockedStatic<SoundManager> sound = Mockito.mockStatic(SoundManager.class)) {
-            SoundManager mockSound = Mockito.mock(SoundManager. class);
+            SoundManager mockSound = Mockito.mock(SoundManager.class);
             sound.when(SoundManager::getInstance).thenReturn(mockSound);
 
             GrenadeLauncher gl = new GrenadeLauncher();
@@ -121,7 +119,7 @@ public class MutationTests {
                 gl.shot();
             }
 
-            assertEquals(0, gl. getAmmoCount());
+            assertEquals(0, gl.getAmmoCount());
         }
     }
 
@@ -129,8 +127,8 @@ public class MutationTests {
     public void testDylanMovementStates() {
         Dylan dylan = new Dylan(new Vector2D(0, 0), 100, 5);
 
-        Set<Entity. State> moves = new TreeSet<>();
-        moves.add(Entity.State. FRONT);
+        Set<Entity.State> moves = new TreeSet<>();
+        moves.add(Entity.State.FRONT);
         moves.add(Entity.State.BACK);
         dylan.setMoving(moves);
 
@@ -140,7 +138,7 @@ public class MutationTests {
     @Test
     public void testDylanTakeDamage() {
         try (MockedStatic<SoundManager> sound = Mockito.mockStatic(SoundManager.class)) {
-            SoundManager mockSound = Mockito.mock(SoundManager. class);
+            SoundManager mockSound = Mockito.mock(SoundManager.class);
             sound.when(SoundManager::getInstance).thenReturn(mockSound);
 
             Dylan dylan = new Dylan(new Vector2D(0, 0), 100, 5);
@@ -152,7 +150,7 @@ public class MutationTests {
     @Test
     public void testDylanDies() {
         try (MockedStatic<SoundManager> sound = Mockito.mockStatic(SoundManager.class)) {
-            SoundManager mockSound = Mockito.mock(SoundManager. class);
+            SoundManager mockSound = Mockito.mock(SoundManager.class);
             sound.when(SoundManager::getInstance).thenReturn(mockSound);
 
             Dylan dylan = new Dylan(new Vector2D(0, 0), 100, 5);
@@ -163,8 +161,8 @@ public class MutationTests {
 
     @Test
     public void testDylanOverkill() {
-        try (MockedStatic<SoundManager> sound = Mockito.mockStatic(SoundManager. class)) {
-            SoundManager mockSound = Mockito. mock(SoundManager.class);
+        try (MockedStatic<SoundManager> sound = Mockito.mockStatic(SoundManager.class)) {
+            SoundManager mockSound = Mockito.mock(SoundManager.class);
             sound.when(SoundManager::getInstance).thenReturn(mockSound);
 
             Dylan dylan = new Dylan(new Vector2D(0, 0), 100, 5);
@@ -176,13 +174,13 @@ public class MutationTests {
 
     @Test
     public void testVector2DMajorDirectionBoundaries() {
-        assertEquals(Vector2D. Direction.RIGHT, new Vector2D(100, 0).getMajorDirection());
+        assertEquals(Vector2D.Direction.RIGHT, new Vector2D(100, 0).getMajorDirection());
         assertEquals(Vector2D.Direction.LEFT, new Vector2D(-100, 0).getMajorDirection());
-        assertEquals(Vector2D.Direction. DOWN, new Vector2D(0, 100).getMajorDirection());
-        assertEquals(Vector2D. Direction.UP, new Vector2D(0, -100).getMajorDirection());
+        assertEquals(Vector2D.Direction.DOWN, new Vector2D(0, 100).getMajorDirection());
+        assertEquals(Vector2D.Direction.UP, new Vector2D(0, -100).getMajorDirection());
         assertEquals(Vector2D.Direction.DOWN_RIGHT, new Vector2D(100, 100).getMajorDirection());
-        assertEquals(Vector2D. Direction.DOWN_LEFT, new Vector2D(-100, 100).getMajorDirection());
+        assertEquals(Vector2D.Direction.DOWN_LEFT, new Vector2D(-100, 100).getMajorDirection());
         assertEquals(Vector2D.Direction.UP_RIGHT, new Vector2D(100, -100).getMajorDirection());
-        assertEquals(Vector2D.Direction. UP_LEFT, new Vector2D(-100, -100).getMajorDirection());
+        assertEquals(Vector2D.Direction.UP_LEFT, new Vector2D(-100, -100).getMajorDirection());
     }
 }

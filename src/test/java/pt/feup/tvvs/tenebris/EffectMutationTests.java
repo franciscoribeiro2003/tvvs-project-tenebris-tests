@@ -11,13 +11,19 @@ public class EffectMutationTests {
 
     @Test
     public void testExplosionDamageDecaysOverTime() {
-        Explosion explosion = new Explosion(new Vector2D(0, 0), 50);
+        int initialInputDamage = 50;
+        // Constructor sets damage = 50 * 2 = 100
+        Explosion explosion = new Explosion(new Vector2D(0, 0), initialInputDamage);
 
-        int initialDamage = explosion.getEntityDamage();
+        assertEquals(100, explosion.getEntityDamage());
+
         explosion.update();
-        int damageAfterUpdate = explosion.getEntityDamage();
+        // Math.pow(100, 0.8) = 39.81... -> cast to int = 39
+        assertEquals(39, explosion.getEntityDamage(), "Damage should decay to exactly 39");
 
-        assertTrue(damageAfterUpdate < initialDamage, "Damage should decay over time");
+        explosion.update();
+        // Math.pow(39, 0.8) = 18.78... -> cast to int = 18
+        assertEquals(18, explosion.getEntityDamage(), "Damage should decay to exactly 18");
     }
 
     @Test

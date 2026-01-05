@@ -98,7 +98,7 @@ public class ProjectileMutationTests {
     public void testSpellCreatesParticleOnImpact() {
         try (MockedStatic<SoundManager> sound = Mockito.mockStatic(SoundManager.class)) {
             SoundManager mockSound = Mockito.mock(SoundManager.class);
-            sound.when(SoundManager:: getInstance).thenReturn(mockSound);
+            sound.when(SoundManager::getInstance).thenReturn(mockSound);
 
             Spell spell = new Spell(new Vector2D(50, 50), Vector2D.Direction.RIGHT, 10);
             Wall wall = new Wall(new Vector2D(50, 50));
