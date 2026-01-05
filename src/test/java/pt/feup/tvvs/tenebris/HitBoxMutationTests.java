@@ -16,7 +16,7 @@ import java.util.TreeSet;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class MutationTests {
+public class HitBoxMutationTests {
 
     @Test
     public void testHitBoxExactBoundary() {

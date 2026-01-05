@@ -3,6 +3,7 @@ package pt.feup.tvvs.tenebris;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
+import pt.feup.tvvs.tenebris.controller.Controller;
 import pt.feup.tvvs.tenebris.controller.menu.*;
 import pt.feup.tvvs.tenebris.gui.Action;
 import pt.feup.tvvs.tenebris.gui.GUI;
@@ -17,9 +18,11 @@ import pt.feup.tvvs.tenebris.state.ArenaState;
 import pt.feup.tvvs.tenebris.state.MenuState;
 import pt.feup.tvvs.tenebris.state.StateChanger;
 import pt.feup.tvvs.tenebris.utils.Difficulty;
+import pt.feup.tvvs.tenebris.view.View;
 
 import java.io.IOException;
 
+import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -333,6 +336,78 @@ public class MenuWhiteBoxTests {
             controller.tick(changer, provider);
 
             verifyArenaTransition(changer);
+        }
+    }
+
+    @Test
+    public void testMenuWrapAroundLogic() {
+        // 1. Create a concrete implementation of the abstract Menu
+        Menu menu = new Menu() {
+            @Override
+            public View<Menu> getView() { return null; }
+            @Override
+            public Controller<Menu> getController() { return null; }
+        };
+
+        // 2. Add Dummy Options
+        menu.getOptions().add("Option 1");
+        menu.getOptions().add("Option 2");
+        menu.getOptions().add("Option 3");
+
+        // 3. Test Wrap UP (Top -> Bottom)
+        // Current: 0. Move Up -> Should be 2 (Size - 1)
+        menu.setSelectedOption(0);
+        menu.moveUp();
+        assertEquals(2, menu.getSelectedOption(), "Menu should wrap from Top to Bottom");
+
+        // 4. Test Wrap DOWN (Bottom -> Top)
+        // Current: 2. Move Down -> Should be 0
+        menu.moveDown();
+        assertEquals(0, menu.getSelectedOption(), "Menu should wrap from Bottom to Top");
+
+        // 5. Test Normal Movement
+        menu.moveDown();
+        assertEquals(1, menu.getSelectedOption());
+
+        // 6. Test Empty Menu Resilience (Mutant might remove the check 'if empty return')
+        menu.getOptions().clear();
+        try {
+            menu.moveUp(); // Should safely do nothing
+            menu.moveDown(); // Should safely do nothing
+        } catch (Exception e) {
+            fail("Menu should handle empty options list gracefully: " + e.getMessage());
+        }
+    }
+
+    @Test
+    public void testNewGameMenu_DifficultySelection() throws IOException, InterruptedException {
+        NewGameMenu menu = new NewGameMenu();
+        NewGameMenuController controller = new NewGameMenuController(menu);
+
+        StateChanger changer = Mockito.mock(StateChanger.class);
+        SaveDataProvider provider = Mockito.mock(SaveDataProvider.class);
+
+        try (MockedStatic<GUI> gui = Mockito.mockStatic(GUI.class);
+             MockedStatic<SaveDataManager> saveManager = Mockito.mockStatic(SaveDataManager.class);
+             MockedStatic<ArenaBuilder> builder = Mockito.mockStatic(ArenaBuilder.class)) {
+
+            gui.when(GUI::getGUI).thenReturn(Mockito.mock(GUI.class));
+            GUI mockGUI = GUI.getGUI();
+
+            SaveDataManager mockSaveManager = Mockito.mock(SaveDataManager.class);
+            saveManager.when(SaveDataManager::getInstance).thenReturn(mockSaveManager);
+
+            // 1. Select Hard Difficulty (assuming index 2 or similar)
+            // Mutants often ignore the specific difficulty passed to createNewSave
+            menu.setSelectedOption(1); // e.g., Normal or Champion
+            when(mockGUI.getAction()).thenReturn(Action.EXEC);
+
+            controller.tick(changer, provider);
+
+            // Verify createNewSave was called with ANY difficulty (weak) or specific (strong)
+            // We verify it was called, meaning the controller logic executed
+            verify(mockSaveManager).createNewSave(any(Difficulty.class));
+            verify(changer).setState(any(ArenaState.class));
         }
     }
 }

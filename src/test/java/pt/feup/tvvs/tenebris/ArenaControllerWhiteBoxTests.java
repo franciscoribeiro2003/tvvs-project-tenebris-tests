@@ -2,9 +2,14 @@ package pt.feup.tvvs.tenebris;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import pt.feup.tvvs.tenebris.controller.arena.ArenaController;
+import pt.feup.tvvs.tenebris.controller.arena.DylanController;
+import pt.feup.tvvs.tenebris.controller.arena.EffectController;
+import pt.feup.tvvs.tenebris.controller.arena.ProjectileController;
+import pt.feup.tvvs.tenebris.controller.arena.monster.TenebrisPeonController;
 import pt.feup.tvvs.tenebris.gui.Action;
 import pt.feup.tvvs.tenebris.gui.GUI;
 import pt.feup.tvvs.tenebris.model.arena.Arena;
@@ -22,10 +27,13 @@ import pt.feup.tvvs.tenebris.sound.SoundManager;
 import pt.feup.tvvs.tenebris.state.MenuState;
 import pt.feup.tvvs.tenebris.state.StateChanger;
 import pt.feup.tvvs.tenebris.utils.Vector2D;
+import pt.feup.tvvs.tenebris.model.arena.Camera;
+import pt.feup.tvvs.tenebris.controller.arena.CameraController;
 
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -144,6 +152,75 @@ public class ArenaControllerWhiteBoxTests {
     }
 
     @Test
+    public void testTickUpdatesAllElements() throws IOException, InterruptedException {
+        // Arrange
+        Arena mockArena = Mockito.mock(Arena.class);
+
+        Dylan mockDylan = Mockito.mock(Dylan.class);
+        TenebrisPeon mockMonster = Mockito.mock(TenebrisPeon.class);
+        Bullet mockProjectile = Mockito.mock(Bullet.class);
+        Explosion mockEffect = Mockito.mock(Explosion.class);
+        Camera mockCamera = Mockito.mock(Camera.class);
+
+        // STUB HITBOXES TO PREVENT NPE
+        pt.feup.tvvs.tenebris.utils.HitBox dummyHitBox = new pt.feup.tvvs.tenebris.utils.HitBox(new Vector2D(0,0), new Vector2D(10,10));
+        when(mockDylan.getHitBox()).thenReturn(dummyHitBox);
+        when(mockMonster.getHitBox()).thenReturn(dummyHitBox);
+        when(mockProjectile.getHitBox()).thenReturn(dummyHitBox);
+        when(mockEffect.getHitBox()).thenReturn(dummyHitBox);
+        // Stub positions to be far apart to avoid collision logic triggering unexpectedly
+        when(mockDylan.getPosition()).thenReturn(new Vector2D(0,0));
+        when(mockMonster.getPosition()).thenReturn(new Vector2D(100,100));
+        when(mockProjectile.getPosition()).thenReturn(new Vector2D(200,200));
+        when(mockEffect.getPosition()).thenReturn(new Vector2D(300,300));
+
+        // Mock Controllers
+        DylanController mockDylanController = Mockito.mock(DylanController.class);
+        TenebrisPeonController mockMonsterController = Mockito.mock(TenebrisPeonController.class);
+        ProjectileController mockProjectileController = Mockito.mock(ProjectileController.class);
+        EffectController mockEffectController = Mockito.mock(EffectController.class);
+        CameraController mockCameraController = Mockito.mock(CameraController.class);
+
+        // Stub Controller Retrieval
+        when(mockDylan.getController()).thenReturn(mockDylanController);
+        when(mockMonster.getController()).thenReturn(mockMonsterController);
+        when(mockProjectile.getController()).thenReturn(mockProjectileController);
+        when(mockEffect.getController()).thenReturn(mockEffectController);
+        when(mockCamera.getController()).thenReturn(mockCameraController);
+
+        // Stub Arena Data Retrieval
+        when(mockArena.getDylan()).thenReturn(mockDylan);
+        when(mockArena.getCamera()).thenReturn(mockCamera);
+        when(mockArena.getMonsters()).thenReturn(Collections.singletonList(mockMonster));
+        when(mockArena.getProjectiles()).thenReturn(Collections.singletonList(mockProjectile));
+        when(mockArena.getEffects()).thenReturn(Collections.singletonList(mockEffect));
+        when(mockArena.getParticles()).thenReturn(Collections.emptyList());
+        when(mockArena.getElements()).thenReturn(Collections.emptyList());
+
+        ArenaController controller = new ArenaController(mockArena);
+
+        StateChanger changer = Mockito.mock(StateChanger.class);
+        SaveDataProvider provider = Mockito.mock(SaveDataProvider.class);
+        when(provider.getSaveData()).thenReturn(Mockito.mock(SaveData.class));
+
+        try (MockedStatic<GUI> gui = Mockito.mockStatic(GUI.class)) {
+            GUI mockGUI = Mockito.mock(GUI.class);
+            gui.when(GUI::getGUI).thenReturn(mockGUI);
+            when(mockGUI.getActiveActions()).thenReturn(new HashSet<>());
+
+            // Act
+            controller.tick(changer, provider);
+        }
+
+        // Assert
+        verify(mockDylanController).update();
+        verify(mockProjectileController).update();
+        verify(mockEffectController).update(controller);
+        verify(mockCameraController).update(any());
+        verify(mockMonsterController).update(any(), any(), any());
+    }
+
+    @Test
     public void testCollision_EffectVsMonster() {
         Vector2D pos = new Vector2D(50, 50);
         TenebrisPeon monster = new TenebrisPeon(pos, 10, 1, 10, 100);
@@ -199,7 +276,7 @@ public class ArenaControllerWhiteBoxTests {
         assertFalse(arena.getElements().contains(wall), "Original breakable wall should be removed");
         assertNull(arena.getDylan(), "Dylan should be killed by KillDylan command");
 
-        // Verify expected newly created items exist (don't rely on exact global counts)
+        // Verify expected newly created items exist
         assertTrue(arena.getProjectiles().stream().anyMatch(p -> p.getPosition().equals(new Vector2D(10,10))),
                 "Expected a projectile at (10,10) to have been created");
         assertTrue(arena.getEffects().stream().anyMatch(e -> e.getPosition().equals(new Vector2D(20,20))),

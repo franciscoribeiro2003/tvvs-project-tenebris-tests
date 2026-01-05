@@ -14,7 +14,7 @@ import java.lang.reflect.Field;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 
-public class TenebrisTests {
+public class TenebrisWhiteBoxTests {
 
     @Test
     public void testSingletonAndStateManagement() throws Exception {

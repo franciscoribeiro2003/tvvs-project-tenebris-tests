@@ -10,6 +10,7 @@ import pt.feup.tvvs.tenebris.gui.LanternaGUI;
 import pt.feup.tvvs.tenebris.model.arena.Arena;
 import pt.feup.tvvs.tenebris.model.arena.effects.Explosion;
 import pt.feup.tvvs.tenebris.model.arena.entities.Dylan;
+import pt.feup.tvvs.tenebris.model.arena.entities.Entity;
 import pt.feup.tvvs.tenebris.model.arena.entities.monster.*;
 import pt.feup.tvvs.tenebris.model.arena.particles.*;
 import pt.feup.tvvs.tenebris.model.arena.projectiles.*;
@@ -24,6 +25,7 @@ import pt.feup.tvvs.tenebris.utils.Vector2D;
 import pt.feup.tvvs.tenebris.view.arena.ArenaView;
 import pt.feup.tvvs.tenebris.view.arena.effects.ExplosionView;
 import pt.feup.tvvs.tenebris.view.arena.entity.DylanView;
+import pt.feup.tvvs.tenebris.view.arena.entity.EntityView;
 import pt.feup.tvvs.tenebris.view.arena.entity.monster.*;
 import pt.feup.tvvs.tenebris.view.arena.particles.*;
 import pt.feup.tvvs.tenebris.view.arena.projectiles.*;
@@ -34,6 +36,8 @@ import pt.feup.tvvs.tenebris.view.menu.*;
 import java.io.IOException;
 import java.lang.reflect.Field;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -59,6 +63,114 @@ public class ViewWhiteBoxTests {
         Field instance = LanternaGUI.class.getDeclaredField("guiInstance");
         instance.setAccessible(true);
         instance.set(null, originalGUI);
+    }
+
+    @Test
+    public void testEntityViewAnimationLogic() {
+        // 1. Setup Mock Entity
+        Entity mockEntity = Mockito.mock(Entity.class);
+        when(mockEntity.getPosition()).thenReturn(new Vector2D(0, 0));
+
+        // 2. Local concrete class to expose protected members
+        class TestEntityView extends EntityView<Entity> {
+            public TestEntityView(Entity model) {
+                super(model);
+            }
+            @Override
+            public void draw(Vector2D camera) {}
+
+            public void runTick() { this.tickState(); }
+            public GUI.AnimationState getState() { return this.state; }
+        }
+
+        TestEntityView view = new TestEntityView(mockEntity);
+
+        // 3. Verify Initial State
+        assertEquals(GUI.AnimationState.IDLE_1, view.getState());
+
+        // 4. Run ticks until state switches to IDLE_2 (Robust against frame count)
+        int safetyCounter = 0;
+        while (view.getState() == GUI.AnimationState.IDLE_1 && safetyCounter++ < 100) {
+            view.runTick();
+        }
+        assertEquals(GUI.AnimationState.IDLE_2, view.getState(), "Animation state should switch to IDLE_2");
+
+        // 5. Run ticks until state switches back to IDLE_1
+        safetyCounter = 0;
+        while (view.getState() == GUI.AnimationState.IDLE_2 && safetyCounter++ < 100) {
+            view.runTick();
+        }
+        assertEquals(GUI.AnimationState.IDLE_1, view.getState(), "Animation state should cycle back to IDLE_1");
+    }
+
+    @Test
+    public void testEntityView_ExhaustiveStateTransitions() {
+        Entity mockEntity = Mockito.mock(Entity.class);
+        when(mockEntity.getPosition()).thenReturn(new Vector2D(0, 0));
+
+        class TestEntityView extends EntityView<Entity> {
+            public TestEntityView(Entity model) { super(model); }
+            @Override public void draw(Vector2D camera) {}
+            public void runTick() { this.tickState(); }
+            public void runUpdate() { this.updateState(); }
+            public GUI.AnimationState getState() { return this.state; }
+            public void setState(GUI.AnimationState s) { this.state = s; }
+        }
+        TestEntityView view = new TestEntityView(mockEntity);
+
+        // --- KILL MUTANTS IN tickState() (Animation Frame Cycling) ---
+        GUI.AnimationState[][] cycles = {
+                {GUI.AnimationState.IDLE_1, GUI.AnimationState.IDLE_2},
+                {GUI.AnimationState.FRONT_1, GUI.AnimationState.FRONT_2},
+                {GUI.AnimationState.BACK_1, GUI.AnimationState.BACK_2},
+                {GUI.AnimationState.LEFT_1, GUI.AnimationState.LEFT_2},
+                {GUI.AnimationState.RIGHT_1, GUI.AnimationState.RIGHT_2}
+        };
+
+        for (GUI.AnimationState[] cycle : cycles) {
+            view.setState(cycle[0]);
+
+            // Advance until state changes
+            int safety = 0;
+            while(view.getState() == cycle[0] && safety++ < 100) {
+                view.runTick();
+            }
+            assertEquals(cycle[1], view.getState(), "Should switch from " + cycle[0] + " to " + cycle[1]);
+
+            // Advance until state changes back
+            safety = 0;
+            while(view.getState() == cycle[1] && safety++ < 100) {
+                view.runTick();
+            }
+            assertEquals(cycle[0], view.getState(), "Should switch from " + cycle[1] + " to " + cycle[0]);
+        }
+
+        // --- KILL MUTANTS IN updateState() ---
+        // (This part of your previous test was fine, keeping it)
+        when(mockEntity.getMoving()).thenReturn(Entity.State.IDLE);
+        when(mockEntity.getLooking()).thenReturn(null);
+        view.setState(GUI.AnimationState.RIGHT_1);
+        view.runUpdate();
+
+        boolean isIdle = view.getState() == GUI.AnimationState.IDLE_1 || view.getState() == GUI.AnimationState.IDLE_2;
+        assertTrue(isIdle, "Should reset to IDLE when entity is idle");
+
+        Entity.State[] moveStates = {Entity.State.LEFT, Entity.State.RIGHT, Entity.State.FRONT, Entity.State.BACK};
+        GUI.AnimationState[] expectedViews = {GUI.AnimationState.LEFT_1, GUI.AnimationState.RIGHT_1, GUI.AnimationState.FRONT_1, GUI.AnimationState.BACK_1};
+
+        for (int i = 0; i < moveStates.length; i++) {
+            when(mockEntity.getMoving()).thenReturn(moveStates[i]);
+            when(mockEntity.getLooking()).thenReturn(null);
+
+            view.setState(GUI.AnimationState.IDLE_1);
+            view.runUpdate();
+
+            String stateName = view.getState().name();
+            String expectedBase = expectedViews[i].name().substring(0, expectedViews[i].name().length() - 2);
+
+            assertTrue(stateName.contains(expectedBase),
+                    "Moving " + moveStates[i] + " should result in " + expectedBase + " animation");
+        }
     }
 
     // --- ARENA VIEW TEST ---

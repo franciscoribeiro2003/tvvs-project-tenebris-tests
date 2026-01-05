@@ -14,12 +14,13 @@ import pt.feup.tvvs.tenebris.state.StateChanger;
 
 import java.io.IOException;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class MenuControllerTests {
+public class MenuControllerWhiteBoxTests {
 
     @Test
     public void testAllMenuNavigations() throws IOException, InterruptedException {
@@ -38,8 +39,20 @@ public class MenuControllerTests {
             MainMenu menu = new MainMenu(provider);
             MainMenuController mainController = new MainMenuController(menu);
 
-            // Select index 0 (New Game)
+            // 1. Boundary: Wrap UP (First -> Last)
             menu.setSelectedOption(0);
+            when(mockGUI.getAction()).thenReturn(Action.LOOK_UP);
+            mainController.tick(changer, provider);
+            // FIX: Changed getNumberOptions() to getOptions().size()
+            assertEquals(menu.getOptions().size() - 1, menu.getSelectedOption(), "Should wrap UP to last");
+
+            // 2. Boundary: Wrap DOWN (Last -> First)
+            when(mockGUI.getAction()).thenReturn(Action.LOOK_DOWN);
+            mainController.tick(changer, provider);
+            assertEquals(0, menu.getSelectedOption(), "Should wrap DOWN to first");
+
+            // 3. Execution
+            menu.setSelectedOption(0); // Ensure New Game selected
             when(mockGUI.getAction()).thenReturn(Action.EXEC);
             mainController.tick(changer, provider);
 

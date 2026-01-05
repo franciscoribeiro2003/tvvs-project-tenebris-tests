@@ -11,7 +11,7 @@ import pt.feup.tvvs.tenebris.utils.Vector2D;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class ModelCoverageTests {
+public class ModelWhiteBoxTests {
 
     @Test
     public void testMonsterConstructorsAndGetters() {

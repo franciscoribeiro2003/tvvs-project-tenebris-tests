@@ -14,7 +14,7 @@ import java.io.IOException;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class StateTests {
+public class StateWhiteBoxTests {
     @Test
     public void testStateLogic() throws IOException, InterruptedException {
         Menu model = Mockito.mock(Menu.class);

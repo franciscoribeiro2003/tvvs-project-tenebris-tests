@@ -11,7 +11,7 @@ import java.io.IOException;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-public class SaveDataTests {
+public class SaveDataWhiteBoxTests {
 
     @Test
     public void testSaveDataFlow() throws IOException {
